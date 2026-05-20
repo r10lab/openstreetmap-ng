@@ -5,7 +5,7 @@ import cython
 import numpy as np
 from annotated_types import MaxLen, MinLen
 from pydantic import PositiveInt, TypeAdapter
-from shapely import Point
+from shapely import Point, get_coordinates
 
 from app.config import (
     ELEMENT_RELATION_MEMBERS_LIMIT,
@@ -91,6 +91,12 @@ def validate_elements(elements: list[ElementInit]):
 def _validate_node(element: ElementInit):
     element['members'] = None
     element['members_roles'] = None
+
+    point = element['point']
+    if point is not None:
+        coords = get_coordinates(point)
+        if coords[0][0] == 0.0 and coords[0][1] == 0.0:
+            raise ValueError('Node coordinates cannot be (0, 0) - this is the Null Island')
 
 
 @cython.cfunc
